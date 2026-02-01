@@ -70,9 +70,9 @@ all = [
 vai = "verify_ai.cli:app"
 
 [project.urls]
-Homepage = "https://github.com/your-org/verify-ai"
-Documentation = "https://github.com/your-org/verify-ai#readme"
-Repository = "https://github.com/your-org/verify-ai"
+Homepage = "https://github.com/ikane001/VerifyAI"
+Documentation = "https://github.com/ikane001/VerifyAI#readme"
+Repository = "https://github.com/ikane001/VerifyAI"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/verify_ai"]

@@ -27,8 +27,10 @@
 ### 🚀 一键初始化，零配置启动
 
 ```bash
-# 安装
-pip install verify-ai
+# 克隆并安装
+git clone https://github.com/ikane001/VerifyAI.git
+cd VerifyAI
+pip install -e .
 
 # 初始化（自动检测项目结构）
 vai init
@@ -72,13 +74,28 @@ vai analyze
 
 ### 安装
 
-```bash
-# 基础安装
-pip install verify-ai
+> ⚠️ **注意**：目前暂未发布到 PyPI，请使用源码安装。后续版本将支持 `pip install verify-ai`。
 
-# 完整安装（包含服务器功能）
+```bash
+# 方式一：从源码安装（当前推荐）
+git clone https://github.com/ikane001/VerifyAI.git
+cd VerifyAI
+pip install -e .
+
+# 方式二：完整安装（包含服务器功能）
+pip install -e '.[all]'
+
+# 方式三：开发模式安装
+pip install -e '.[dev]'
+```
+
+<!-- 后续支持：
+```bash
+# PyPI 安装（即将支持）
+pip install verify-ai
 pip install 'verify-ai[all]'
 ```
+-->
 
 ### 三步上手
 
@@ -192,9 +209,12 @@ vai server --port 8000
 # .github/workflows/verify.yml
 - name: Run VerifyAI
   run: |
-    pip install verify-ai
+    git clone https://github.com/ikane001/VerifyAI.git /tmp/verify-ai
+    pip install /tmp/verify-ai
     vai verify --trigger pr
 ```
+
+> 💡 后续发布到 PyPI 后，可简化为 `pip install verify-ai`
 
 ---
 
@@ -280,8 +300,8 @@ verify-ai/
 
 ```bash
 # 克隆项目
-git clone https://github.com/your-org/verify-ai
-cd verify-ai
+git clone https://github.com/ikane001/VerifyAI.git
+cd VerifyAI
 
 # 安装开发依赖
 pip install -e '.[dev]'
