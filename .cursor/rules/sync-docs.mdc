@@ -1,0 +1,61 @@
+---
+description: 同步更新相关文档
+globs: 
+  - "src/**/*.py"
+  - "pyproject.toml"
+  - "README.md"
+alwaysApply: false
+---
+
+# 文档同步规则
+
+当对项目进行重大更改时，需要同步更新以下相关文档：
+
+## 需要同步的文档列表
+
+1. **README.md** - 项目主文档
+   - 更新功能列表和命令参考表
+   - 更新路线图完成状态
+   - 更新项目结构说明
+   - 更新安装说明（如有依赖变更）
+
+2. **presentation.html** - 演示文稿
+   - 更新首页统计数据（开发阶段数、测试用例数）
+   - 更新技术亮点列表
+   - 更新能力递进等级
+   - 更新开发历程时间线
+
+3. **pyproject.toml** - 项目配置
+   - 更新版本号（如需要）
+   - 更新依赖列表
+   - 更新可选依赖组
+
+4. **SKILL.md** - Cursor Skill 配置
+   - 更新可用命令列表
+   - 更新功能说明
+
+## 触发条件
+
+以下情况需要检查并同步文档：
+
+- 新增或删除 CLI 命令
+- 完成新的开发阶段（Phase）
+- 新增模块或功能
+- 测试用例数量显著变化
+- 支持语言数量变化
+- API 端点变更
+
+## 统计数据位置
+
+- **测试用例数**: 运行 `pytest tests/ -v 2>&1 | tail -5` 查看
+- **开发阶段数**: 查看 README.md 路线图已完成的 Phase 数量
+- **支持语言数**: Python, JavaScript, TypeScript, Go, Java = 5
+
+## 检查清单
+
+更新文档时请确认：
+- [ ] README.md 路线图状态正确
+- [ ] README.md 命令参考表完整
+- [ ] presentation.html 统计数据准确
+- [ ] presentation.html 时间线与路线图一致
+- [ ] presentation.html 技术亮点包含新功能
