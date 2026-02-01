@@ -10,7 +10,7 @@ readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11"
 authors = [
-    { name = "VerifyAI Team" }
+    { name = "ikane", email = "ikane12048@163.com" }
 ]
 keywords = ["testing", "ai", "automation", "code-quality", "llm"]
 classifiers = [
