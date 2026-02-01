@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VerifyAI - AI驱动的自动化验证系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 50%, #0a2040 100%);
+            color: #fff;
+            overflow: hidden;
+        }
+
+        /* Particle background */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(0, 212, 255, 0.6);
+            border-radius: 50%;
+            animation: float 15s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+
+        .slide {
+            display: none !important;
+            position: relative;
+            z-index: 1;
+            height: 100vh;
+            padding: 60px;
+        }
+
+        .slide.active {
+            display: flex !important;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Slide transitions */
+        .slide-enter {
+            animation: slideIn 0.6s ease-out forwards;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 5rem;
+            margin-bottom: 30px;
+            background: linear-gradient(120deg, #00d4ff, #7c3aed, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 3rem;
+            margin-bottom: 50px;
+            color: #00d4ff;
+            text-align: center;
+        }
+
+        h3 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #7c3aed;
+        }
+
+        p {
+            font-size: 1.5rem;
+            line-height: 1.8;
+            color: #cbd5e1;
+            max-width: 900px;
+            text-align: center;
+        }
+
+        .subtitle {
+            font-size: 2rem;
+            color: #94a3b8;
+            margin-bottom: 50px;
+            text-align: center;
+        }
+
+        /* Typewriter effect */
+        .typewriter {
+            overflow: hidden;
+            border-right: 3px solid #00d4ff;
+            white-space: nowrap;
+            animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: #00d4ff; }
+        }
+
+        /* Terminal simulation */
+        .terminal {
+            background: #0d1117;
+            border-radius: 12px;
+            padding: 0;
+            width: 90%;
+            max-width: 900px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: #21262d;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .terminal-btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .terminal-btn.red { background: #ff5f56; }
+        .terminal-btn.yellow { background: #ffbd2e; }
+        .terminal-btn.green { background: #27ca40; }
+
+        .terminal-title {
+            color: #8b949e;
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
+
+        .terminal-body {
+            padding: 20px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 1rem;
+            line-height: 1.8;
+            min-height: 400px;
+            color: #c9d1d9;
+        }
+
+        .terminal-line {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        .terminal-line.visible {
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 0.3s ease;
+        }
+
+        .terminal-prompt {
+            color: #58a6ff;
+        }
+
+        .terminal-command {
+            color: #f0f6fc;
+        }
+
+        .terminal-success {
+            color: #3fb950;
+        }
+
+        .terminal-info {
+            color: #8b949e;
+        }
+
+        .terminal-highlight {
+            color: #d2a8ff;
+        }
+
+        .terminal-warning {
+            color: #d29922;
+        }
+
+        /* Progress levels */
+        .levels-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 90%;
+            max-width: 800px;
+        }
+
+        .level-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border-left: 4px solid transparent;
+            opacity: 0;
+            transform: translateX(-50px);
+            transition: all 0.5s ease;
+        }
+
+        .level-item.unlocked {
+            opacity: 1;
+            transform: translateX(0);
+            border-left-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .level-badge {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00d4ff, #7c3aed);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .level-content {
+            flex: 1;
+        }
+
+        .level-title {
+            font-size: 1.3rem;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+
+        .level-desc {
+            font-size: 1rem;
+            color: #8b949e;
+        }
+
+        .level-icon {
+            font-size: 2rem;
+        }
+
+        /* Architecture diagram */
+        .architecture {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .arch-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .arch-box {
+            padding: 25px 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            border: 2px solid transparent;
+            text-align: center;
+            min-width: 180px;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.5s ease;
+        }
+
+        .arch-box.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .arch-box.highlight {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.15);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+        }
+
+        .arch-box-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .arch-box-title {
+            font-size: 1.2rem;
+            color: #fff;
+        }
+
+        .arch-arrow {
+            font-size: 2rem;
+            color: #00d4ff;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .arch-arrow.visible {
+            opacity: 1;
+        }
+
+        .arch-sub-row {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+        }
+
+        .arch-sub-box {
+            padding: 15px 25px;
+            background: rgba(124, 58, 237, 0.2);
+            border-radius: 8px;
+            border: 1px solid #7c3aed;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .arch-sub-box.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Steps */
+        .steps-container {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            width: 90%;
+            max-width: 800px;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .step-item.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .step-number {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00d4ff, #7c3aed);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            font-size: 1.5rem;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .step-command {
+            background: #0d1117;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            color: #58a6ff;
+            font-size: 1.1rem;
+        }
+
+        .step-time {
+            color: #3fb950;
+            font-size: 0.9rem;
+            margin-top: 8px;
+        }
+
+        /* Integration cards */
+        .integration-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            width: 90%;
+            max-width: 1000px;
+        }
+
+        .integration-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            border: 2px solid transparent;
+            opacity: 0;
+            transform: translateY(50px) rotateX(20deg);
+            transition: all 0.6s ease;
+        }
+
+        .integration-card.visible {
+            opacity: 1;
+            transform: translateY(0) rotateX(0);
+        }
+
+        .integration-card:hover {
+            border-color: #00d4ff;
+            transform: translateY(-10px);
+        }
+
+        .integration-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        .integration-title {
+            font-size: 1.4rem;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .integration-desc {
+            font-size: 1rem;
+            color: #8b949e;
+            margin-bottom: 15px;
+        }
+
+        .integration-users {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: #58a6ff;
+        }
+
+        /* Comparison */
+        .comparison {
+            display: flex;
+            gap: 60px;
+            width: 90%;
+            max-width: 1100px;
+        }
+
+        .comparison-side {
+            flex: 1;
+            padding: 40px;
+            border-radius: 16px;
+            opacity: 0;
+            transition: all 0.8s ease;
+        }
+
+        .comparison-side.bad {
+            background: rgba(248, 81, 73, 0.1);
+            border: 2px solid rgba(248, 81, 73, 0.3);
+            transform: translateX(-100px);
+        }
+
+        .comparison-side.good {
+            background: rgba(63, 185, 80, 0.1);
+            border: 2px solid rgba(63, 185, 80, 0.3);
+            transform: translateX(100px);
+        }
+
+        .comparison-side.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .comparison-title {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .comparison-side.bad .comparison-title { color: #f85149; }
+        .comparison-side.good .comparison-title { color: #3fb950; }
+
+        .comparison-list {
+            list-style: none;
+        }
+
+        .comparison-list li {
+            padding: 12px 0;
+            font-size: 1.2rem;
+            color: #c9d1d9;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .comparison-list li:last-child {
+            border-bottom: none;
+        }
+
+        /* Stats */
+        .stats-row {
+            display: flex;
+            gap: 60px;
+            margin-top: 50px;
+        }
+
+        .stat-item {
+            text-align: center;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.5s ease;
+        }
+
+        .stat-item.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .stat-number {
+            font-size: 4rem;
+            font-weight: bold;
+            background: linear-gradient(120deg, #00d4ff, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            font-size: 1.2rem;
+            color: #8b949e;
+            margin-top: 10px;
+        }
+
+        /* Tech highlights */
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            width: 90%;
+            max-width: 1000px;
+        }
+
+        .tech-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            opacity: 0;
+            transform: rotateY(90deg);
+            transition: all 0.6s ease;
+        }
+
+        .tech-card.visible {
+            opacity: 1;
+            transform: rotateY(0);
+        }
+
+        .tech-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .tech-title {
+            font-size: 1.1rem;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .tech-desc {
+            font-size: 0.9rem;
+            color: #8b949e;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            width: 90%;
+            max-width: 800px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(to bottom, #00d4ff, #7c3aed);
+            transform: translateX(-50%);
+        }
+
+        .timeline-item {
+            display: flex;
+            justify-content: flex-end;
+            padding-right: 50%;
+            position: relative;
+            margin-bottom: 40px;
+            opacity: 0;
+            transform: translateX(-30px);
+            transition: all 0.5s ease;
+        }
+
+        .timeline-item:nth-child(even) {
+            justify-content: flex-start;
+            padding-right: 0;
+            padding-left: 50%;
+            transform: translateX(30px);
+        }
+
+        .timeline-item.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .timeline-content {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px 25px;
+            border-radius: 12px;
+            max-width: 350px;
+            margin-right: 30px;
+        }
+
+        .timeline-item:nth-child(even) .timeline-content {
+            margin-right: 0;
+            margin-left: 30px;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: 50%;
+            top: 20px;
+            width: 20px;
+            height: 20px;
+            background: #00d4ff;
+            border-radius: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+
+        .timeline-phase {
+            color: #00d4ff;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .timeline-title {
+            color: #fff;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .timeline-desc {
+            color: #8b949e;
+            font-size: 0.9rem;
+        }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px 30px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid #00d4ff;
+            background: transparent;
+            color: #00d4ff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: #00d4ff;
+            color: #0a0a1a;
+        }
+
+        .nav-dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-dot.active {
+            background: #00d4ff;
+            transform: scale(1.3);
+        }
+
+        .slide-counter {
+            color: #8b949e;
+            font-size: 0.9rem;
+        }
+
+        /* Value proposition */
+        .value-text {
+            font-size: 3rem;
+            text-align: center;
+            line-height: 1.6;
+            max-width: 900px;
+        }
+
+        .value-highlight {
+            color: #00d4ff;
+            font-weight: bold;
+        }
+
+        /* Cursor blink */
+        .cursor {
+            display: inline-block;
+            width: 3px;
+            height: 1.2em;
+            background: #00d4ff;
+            margin-left: 5px;
+            animation: cursor-blink 1s infinite;
+        }
+
+        @keyframes cursor-blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* Demo button */
+        .demo-btn {
+            margin-top: 30px;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            background: linear-gradient(135deg, #00d4ff, #7c3aed);
+            border: none;
+            border-radius: 50px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .demo-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.4);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 { font-size: 3rem; }
+            h2 { font-size: 2rem; }
+            .comparison { flex-direction: column; gap: 30px; }
+            .integration-grid { grid-template-columns: 1fr; }
+            .tech-grid { grid-template-columns: 1fr; }
+            .arch-row { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Particle background -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Slide 1: Cover -->
+    <div class="slide active" id="slide1">
+        <div style="font-size: 6rem; margin-bottom: 20px;">🔬</div>
+        <h1 id="main-title"></h1>
+        <p class="subtitle" id="main-subtitle"></p>
+        <div class="stats-row">
+            <div class="stat-item" data-delay="1000">
+                <div class="stat-number">7</div>
+                <div class="stat-label">开发阶段</div>
+            </div>
+            <div class="stat-item" data-delay="1200">
+                <div class="stat-number">105</div>
+                <div class="stat-label">测试用例</div>
+            </div>
+            <div class="stat-item" data-delay="1400">
+                <div class="stat-number">5</div>
+                <div class="stat-label">支持语言</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 2: Pain Points Comparison -->
+    <div class="slide" id="slide2">
+        <h2>传统测试 vs VerifyAI</h2>
+        <div class="comparison">
+            <div class="comparison-side bad" data-delay="300">
+                <div class="comparison-title">❌ 传统方式的痛点</div>
+                <ul class="comparison-list">
+                    <li>⏰ 手写测试耗时费力</li>
+                    <li>🕳️ 测试覆盖不全面</li>
+                    <li>🔍 测试失败难定位</li>
+                    <li>🐢 回归测试太慢</li>
+                    <li>🌐 多语言项目难统一</li>
+                </ul>
+            </div>
+            <div class="comparison-side good" data-delay="600">
+                <div class="comparison-title">✅ VerifyAI 的解决方案</div>
+                <ul class="comparison-list">
+                    <li>🤖 LLM 自动生成高质量测试</li>
+                    <li>🧠 智能分析代码，全面覆盖</li>
+                    <li>🎯 AI 分析根因，精准定位</li>
+                    <li>⚡ 增量验证，2分钟反馈</li>
+                    <li>🌍 统一支持 5 种主流语言</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 3: Value Proposition -->
+    <div class="slide" id="slide3">
+        <div class="value-text">
+            <span id="value-line1"></span><br>
+            <span id="value-line2"></span><br>
+            <span id="value-line3"></span>
+        </div>
+    </div>
+
+    <!-- Slide 4: Live Demo -->
+    <div class="slide" id="slide4">
+        <h2>🎬 实时演示</h2>
+        <div class="terminal">
+            <div class="terminal-header">
+                <div class="terminal-btn red"></div>
+                <div class="terminal-btn yellow"></div>
+                <div class="terminal-btn green"></div>
+                <span class="terminal-title">VerifyAI Terminal</span>
+            </div>
+            <div class="terminal-body" id="terminal-output">
+            </div>
+        </div>
+        <button class="demo-btn" onclick="runDemo()">▶ 重新运行演示</button>
+    </div>
+
+    <!-- Slide 5: Progressive Capabilities -->
+    <div class="slide" id="slide5">
+        <h2>🚀 能力递进</h2>
+        <div class="levels-container">
+            <div class="level-item" data-level="1">
+                <div class="level-badge">L1</div>
+                <div class="level-content">
+                    <div class="level-title">基础 - 一键扫描项目</div>
+                    <div class="level-desc">自动识别项目结构、代码文件、API端点</div>
+                </div>
+                <div class="level-icon">🔍</div>
+            </div>
+            <div class="level-item" data-level="2">
+                <div class="level-badge">L2</div>
+                <div class="level-content">
+                    <div class="level-title">进阶 - AI 生成测试</div>
+                    <div class="level-desc">LLM 理解代码语义，自动生成边界测试</div>
+                </div>
+                <div class="level-icon">🧠</div>
+            </div>
+            <div class="level-item" data-level="3">
+                <div class="level-badge">L3</div>
+                <div class="level-content">
+                    <div class="level-title">高级 - 智能失败分析</div>
+                    <div class="level-desc">解析失败原因，定位问题代码行</div>
+                </div>
+                <div class="level-icon">🔧</div>
+            </div>
+            <div class="level-item" data-level="4">
+                <div class="level-badge">L4</div>
+                <div class="level-content">
+                    <div class="level-title">专家 - 自动修复建议</div>
+                    <div class="level-desc">AI 生成修复代码，一键应用</div>
+                </div>
+                <div class="level-icon">✨</div>
+            </div>
+            <div class="level-item" data-level="5">
+                <div class="level-badge">L5</div>
+                <div class="level-content">
+                    <div class="level-title">团队 - CI/CD 集成</div>
+                    <div class="level-desc">GitHub Webhook、REST API、自动阻断</div>
+                </div>
+                <div class="level-icon">🏢</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 6: Architecture -->
+    <div class="slide" id="slide6">
+        <h2>🏗️ 系统架构</h2>
+        <div class="architecture">
+            <div class="arch-row">
+                <div class="arch-box" data-delay="0">
+                    <div class="arch-box-icon">📁</div>
+                    <div class="arch-box-title">代码仓库</div>
+                </div>
+                <div class="arch-arrow" data-delay="300">→</div>
+                <div class="arch-box highlight" data-delay="400">
+                    <div class="arch-box-icon">🔬</div>
+                    <div class="arch-box-title">VerifyAI</div>
+                </div>
+                <div class="arch-arrow" data-delay="700">→</div>
+                <div class="arch-box" data-delay="800">
+                    <div class="arch-box-icon">📊</div>
+                    <div class="arch-box-title">测试报告</div>
+                </div>
+            </div>
+            <div class="arch-sub-row">
+                <div class="arch-sub-box" data-delay="1200">
+                    <div>🔄 Git 追踪</div>
+                    <div style="font-size: 0.8rem; color: #8b949e;">增量变更检测</div>
+                </div>
+                <div class="arch-sub-box" data-delay="1400">
+                    <div>🧠 LLM 分析</div>
+                    <div style="font-size: 0.8rem; color: #8b949e;">Claude / GPT / Ollama</div>
+                </div>
+                <div class="arch-sub-box" data-delay="1600">
+                    <div>🔧 智能修复</div>
+                    <div style="font-size: 0.8rem; color: #8b949e;">自动生成补丁</div>
+                </div>
+            </div>
+            <div class="arch-row" style="margin-top: 30px;">
+                <div class="arch-sub-box" data-delay="1800">
+                    <div>🌳 Tree-sitter</div>
+                    <div style="font-size: 0.8rem; color: #8b949e;">多语言 AST</div>
+                </div>
+                <div class="arch-sub-box" data-delay="2000">
+                    <div>📋 OpenAPI</div>
+                    <div style="font-size: 0.8rem; color: #8b949e;">API 规范解析</div>
+                </div>
+                <div class="arch-sub-box" data-delay="2200">
+                    <div>📝 日志回放</div>
+                    <div style="font-size: 0.8rem; color: #8b949e;">场景重现</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 7: Quick Start -->
+    <div class="slide" id="slide7">
+        <h2>⚡ 三步开始</h2>
+        <div class="steps-container">
+            <div class="step-item" data-delay="300">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <div class="step-title">安装 VerifyAI</div>
+                    <div class="step-command">$ pip install verify-ai</div>
+                    <div class="step-time">⏱️ 5 秒完成</div>
+                </div>
+            </div>
+            <div class="step-item" data-delay="600">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <div class="step-title">扫描项目</div>
+                    <div class="step-command">$ vai scan .</div>
+                    <div class="step-time">⏱️ 自动识别结构</div>
+                </div>
+            </div>
+            <div class="step-item" data-delay="900">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <div class="step-title">生成测试</div>
+                    <div class="step-command">$ vai generate</div>
+                    <div class="step-time">⏱️ AI 智能生成</div>
+                </div>
+            </div>
+        </div>
+        <p style="margin-top: 50px; font-size: 1.3rem;">
+            <span style="color: #3fb950;">零配置</span> · 
+            <span style="color: #00d4ff;">即装即用</span> · 
+            <span style="color: #d2a8ff;">自动检测</span>
+        </p>
+    </div>
+
+    <!-- Slide 8: Integration Methods -->
+    <div class="slide" id="slide8">
+        <h2>🔌 多种集成方式</h2>
+        <div class="integration-grid">
+            <div class="integration-card" data-delay="200">
+                <div class="integration-icon">💻</div>
+                <div class="integration-title">命令行 CLI</div>
+                <div class="integration-desc">直接在终端使用，无需额外配置</div>
+                <div class="integration-users">
+                    <span>👤 开发者</span>
+                </div>
+            </div>
+            <div class="integration-card" data-delay="400">
+                <div class="integration-icon">🔮</div>
+                <div class="integration-title">MCP Server</div>
+                <div class="integration-desc">集成到 Cursor / Claude 等 AI IDE</div>
+                <div class="integration-users">
+                    <span>🤖 AI 工具链</span>
+                </div>
+            </div>
+            <div class="integration-card" data-delay="600">
+                <div class="integration-icon">🌐</div>
+                <div class="integration-title">REST API</div>
+                <div class="integration-desc">GitHub Webhook 自动触发验证</div>
+                <div class="integration-users">
+                    <span>🏢 CI/CD 流水线</span>
+                </div>
+            </div>
+        </div>
+        <div style="margin-top: 50px; display: flex; gap: 40px; align-items: center;">
+            <div style="text-align: center;">
+                <div style="font-size: 2rem;">📤 Push</div>
+                <div style="color: #8b949e;">快速检查</div>
+            </div>
+            <div style="font-size: 2rem; color: #00d4ff;">→</div>
+            <div style="text-align: center;">
+                <div style="font-size: 2rem;">🔀 PR</div>
+                <div style="color: #8b949e;">完整测试</div>
+            </div>
+            <div style="font-size: 2rem; color: #00d4ff;">→</div>
+            <div style="text-align: center;">
+                <div style="font-size: 2rem;">🔒 Merge</div>
+                <div style="color: #8b949e;">阻断保护</div>
+            </div>
+            <div style="font-size: 2rem; color: #00d4ff;">→</div>
+            <div style="text-align: center;">
+                <div style="font-size: 2rem;">⏰ Schedule</div>
+                <div style="color: #8b949e;">深度扫描</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 9: Tech Highlights -->
+    <div class="slide" id="slide9">
+        <h2>✨ 技术亮点</h2>
+        <div class="tech-grid">
+            <div class="tech-card" data-delay="100">
+                <div class="tech-icon">🌳</div>
+                <div class="tech-title">Tree-sitter AST</div>
+                <div class="tech-desc">精准解析 Python/JS/TS/Go/Java</div>
+            </div>
+            <div class="tech-card" data-delay="200">
+                <div class="tech-icon">🧠</div>
+                <div class="tech-title">多 LLM 支持</div>
+                <div class="tech-desc">Claude / OpenAI / Ollama</div>
+            </div>
+            <div class="tech-card" data-delay="300">
+                <div class="tech-icon">📋</div>
+                <div class="tech-title">OpenAPI 解析</div>
+                <div class="tech-desc">自动从 Swagger 生成 API 测试</div>
+            </div>
+            <div class="tech-card" data-delay="400">
+                <div class="tech-icon">🔄</div>
+                <div class="tech-title">Git 增量检测</div>
+                <div class="tech-desc">只测试变更相关代码</div>
+            </div>
+            <div class="tech-card" data-delay="500">
+                <div class="tech-icon">📝</div>
+                <div class="tech-title">日志场景回放</div>
+                <div class="tech-desc">从 Nginx/HAR/Error 日志生成测试</div>
+            </div>
+            <div class="tech-card" data-delay="600">
+                <div class="tech-icon">🔧</div>
+                <div class="tech-title">智能修复</div>
+                <div class="tech-desc">分析失败根因，自动建议修复</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 10: Roadmap -->
+    <div class="slide" id="slide10">
+        <h2>🗺️ 开发历程 & 未来规划</h2>
+        <div class="timeline">
+            <div class="timeline-item" data-delay="200">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <div class="timeline-phase">Phase 1-2 ✅</div>
+                    <div class="timeline-title">基础框架 & 多语言支持</div>
+                    <div class="timeline-desc">CLI / 扫描器 / Tree-sitter AST</div>
+                </div>
+            </div>
+            <div class="timeline-item" data-delay="400">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <div class="timeline-phase">Phase 3-4 ✅</div>
+                    <div class="timeline-title">Git 集成 & 智能分析</div>
+                    <div class="timeline-desc">增量验证 / 失败分析 / 自动修复</div>
+                </div>
+            </div>
+            <div class="timeline-item" data-delay="600">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <div class="timeline-phase">Phase 5-6 ✅</div>
+                    <div class="timeline-title">场景回放 & MCP 集成</div>
+                    <div class="timeline-desc">日志解析 / Cursor 集成</div>
+                </div>
+            </div>
+            <div class="timeline-item" data-delay="800">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <div class="timeline-phase">Phase 7 ✅</div>
+                    <div class="timeline-title">云端服务</div>
+                    <div class="timeline-desc">REST API / GitHub Webhook</div>
+                </div>
+            </div>
+            <div class="timeline-item" data-delay="1000">
+                <div class="timeline-dot" style="background: #7c3aed;"></div>
+                <div class="timeline-content">
+                    <div class="timeline-phase" style="color: #d2a8ff;">Next 🚀</div>
+                    <div class="timeline-title">VS Code 插件 & 可视化仪表盘</div>
+                    <div class="timeline-desc">更好的开发者体验</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav">
+        <button class="nav-btn" onclick="prevSlide()">←</button>
+        <div class="nav-dots" id="nav-dots"></div>
+        <button class="nav-btn" onclick="nextSlide()">→</button>
+        <span class="slide-counter" id="slide-counter">1 / 10</span>
+    </div>
+
+    <script>
+        // Initialize
+        let currentSlide = 0;
+        const totalSlides = 10;
+        let demoRunning = false;
+
+        // Create particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+
+        // Create navigation dots
+        function createNavDots() {
+            const container = document.getElementById('nav-dots');
+            for (let i = 0; i < totalSlides; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+                dot.onclick = () => goToSlide(i);
+                container.appendChild(dot);
+            }
+        }
+
+        // Typewriter effect
+        function typeWriter(element, text, speed = 50, callback) {
+            let i = 0;
+            element.textContent = '';
+            function type() {
+                if (i < text.length) {
+                    element.textContent += text.charAt(i);
+                    i++;
+                    setTimeout(type, speed);
+                } else if (callback) {
+                    callback();
+                }
+            }
+            type();
+        }
+
+        // Terminal demo
+        const demoLines = [
+            { type: 'prompt', text: '$ vai scan ./my-project', delay: 0 },
+            { type: 'info', text: '🔍 Scanning project...', delay: 800 },
+            { type: 'info', text: '├── Found 12 Python files', delay: 1200 },
+            { type: 'info', text: '├── Found 3 API endpoints (OpenAPI)', delay: 1600 },
+            { type: 'info', text: '├── Detected 28 functions', delay: 2000 },
+            { type: 'success', text: '└── ✓ Scan complete!', delay: 2400 },
+            { type: 'empty', text: '', delay: 2800 },
+            { type: 'prompt', text: '$ vai generate --provider claude', delay: 3200 },
+            { type: 'info', text: '🧠 Generating tests with Claude...', delay: 4000 },
+            { type: 'highlight', text: '├── Analyzing user_service.py...', delay: 4500 },
+            { type: 'success', text: '│   ✓ Generated test_user_login.py (8 cases)', delay: 5200 },
+            { type: 'highlight', text: '├── Analyzing calculator.py...', delay: 5800 },
+            { type: 'success', text: '│   ✓ Generated test_calculate.py (5 cases)', delay: 6400 },
+            { type: 'highlight', text: '├── Analyzing api_endpoints...', delay: 7000 },
+            { type: 'success', text: '│   ✓ Generated test_api.py (12 cases)', delay: 7600 },
+            { type: 'success', text: '└── ✓ Total: 25 test cases generated!', delay: 8200 },
+            { type: 'empty', text: '', delay: 8600 },
+            { type: 'prompt', text: '$ vai verify', delay: 9000 },
+            { type: 'info', text: '⚡ Running tests...', delay: 9500 },
+            { type: 'success', text: '████████████████████ 100%', delay: 10200 },
+            { type: 'success', text: '✓ 23 passed', delay: 10800 },
+            { type: 'warning', text: '⚠ 2 failed', delay: 11200 },
+            { type: 'empty', text: '', delay: 11600 },
+            { type: 'prompt', text: '$ vai analyze', delay: 12000 },
+            { type: 'info', text: '🔧 Analyzing failures...', delay: 12500 },
+            { type: 'highlight', text: '├── test_validate_email: AssertionError', delay: 13000 },
+            { type: 'info', text: '│   Root cause: Regex missing edge case', delay: 13500 },
+            { type: 'success', text: '│   ✓ Fix suggestion generated!', delay: 14000 },
+            { type: 'success', text: '└── ✓ Analysis complete!', delay: 14500 },
+        ];
+
+        function runDemo() {
+            if (demoRunning) return;
+            demoRunning = true;
+            
+            const terminal = document.getElementById('terminal-output');
+            terminal.innerHTML = '';
+            
+            demoLines.forEach((line, index) => {
+                setTimeout(() => {
+                    const div = document.createElement('div');
+                    div.className = 'terminal-line';
+                    
+                    if (line.type === 'prompt') {
+                        div.innerHTML = `<span class="terminal-prompt">${line.text}</span>`;
+                    } else if (line.type === 'success') {
+                        div.innerHTML = `<span class="terminal-success">${line.text}</span>`;
+                    } else if (line.type === 'warning') {
+                        div.innerHTML = `<span class="terminal-warning">${line.text}</span>`;
+                    } else if (line.type === 'highlight') {
+                        div.innerHTML = `<span class="terminal-highlight">${line.text}</span>`;
+                    } else if (line.type === 'empty') {
+                        div.innerHTML = '&nbsp;';
+                    } else {
+                        div.innerHTML = `<span class="terminal-info">${line.text}</span>`;
+                    }
+                    
+                    terminal.appendChild(div);
+                    
+                    setTimeout(() => {
+                        div.classList.add('visible');
+                    }, 50);
+                    
+                    terminal.scrollTop = terminal.scrollHeight;
+                    
+                    if (index === demoLines.length - 1) {
+                        demoRunning = false;
+                    }
+                }, line.delay);
+            });
+        }
+
+        // Slide animations
+        function animateSlide(slideIndex) {
+            const slide = document.getElementById(`slide${slideIndex + 1}`);
+            
+            // Reset animations
+            slide.querySelectorAll('.visible, .unlocked').forEach(el => {
+                el.classList.remove('visible', 'unlocked');
+            });
+            
+            switch(slideIndex) {
+                case 0: // Cover
+                    typeWriter(document.getElementById('main-title'), 'VerifyAI', 100, () => {
+                        typeWriter(document.getElementById('main-subtitle'), 'AI驱动的自动化验证系统', 50);
+                    });
+                    slide.querySelectorAll('.stat-item').forEach(el => {
+                        setTimeout(() => el.classList.add('visible'), parseInt(el.dataset.delay) || 0);
+                    });
+                    break;
+                    
+                case 1: // Comparison
+                    slide.querySelectorAll('.comparison-side').forEach(el => {
+                        setTimeout(() => el.classList.add('visible'), parseInt(el.dataset.delay) || 0);
+                    });
+                    break;
+                    
+                case 2: // Value
+                    const lines = [
+                        { el: 'value-line1', text: '写代码的速度，越来越快' },
+                        { el: 'value-line2', text: '验证代码的方式，也该跟上' },
+                        { el: 'value-line3', text: 'VerifyAI — 让 AI 帮你守护质量' }
+                    ];
+                    lines.forEach((line, i) => {
+                        setTimeout(() => {
+                            typeWriter(document.getElementById(line.el), line.text, 40);
+                        }, i * 1500);
+                    });
+                    break;
+                    
+                case 3: // Demo
+                    runDemo();
+                    break;
+                    
+                case 4: // Levels
+                    slide.querySelectorAll('.level-item').forEach((el, i) => {
+                        setTimeout(() => el.classList.add('unlocked'), 300 + i * 400);
+                    });
+                    break;
+                    
+                case 5: // Architecture
+                    slide.querySelectorAll('.arch-box, .arch-arrow, .arch-sub-box').forEach(el => {
+                        setTimeout(() => el.classList.add('visible'), parseInt(el.dataset.delay) || 0);
+                    });
+                    break;
+                    
+                case 6: // Steps
+                    slide.querySelectorAll('.step-item').forEach(el => {
+                        setTimeout(() => el.classList.add('visible'), parseInt(el.dataset.delay) || 0);
+                    });
+                    break;
+                    
+                case 7: // Integration
+                    slide.querySelectorAll('.integration-card').forEach(el => {
+                        setTimeout(() => el.classList.add('visible'), parseInt(el.dataset.delay) || 0);
+                    });
+                    break;
+                    
+                case 8: // Tech
+                    slide.querySelectorAll('.tech-card').forEach(el => {
+                        setTimeout(() => el.classList.add('visible'), parseInt(el.dataset.delay) || 0);
+                    });
+                    break;
+                    
+                case 9: // Timeline
+                    slide.querySelectorAll('.timeline-item').forEach(el => {
+                        setTimeout(() => el.classList.add('visible'), parseInt(el.dataset.delay) || 0);
+                    });
+                    break;
+            }
+        }
+
+        // Navigation
+        function updateSlide() {
+            document.querySelectorAll('.slide').forEach((slide, i) => {
+                slide.classList.remove('active');
+                if (i === currentSlide) {
+                    slide.classList.add('active', 'slide-enter');
+                    animateSlide(i);
+                }
+            });
+            
+            document.querySelectorAll('.nav-dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === currentSlide);
+            });
+            
+            document.getElementById('slide-counter').textContent = `${currentSlide + 1} / ${totalSlides}`;
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides - 1) {
+                currentSlide++;
+                updateSlide();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlide();
+            }
+        }
+
+        function goToSlide(index) {
+            currentSlide = index;
+            updateSlide();
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevSlide();
+            }
+        });
+
+        // Touch support
+        let touchStartX = 0;
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            const touchEndX = e.changedTouches[0].clientX;
+            const diff = touchStartX - touchEndX;
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) nextSlide();
+                else prevSlide();
+            }
+        });
+
+        // Initialize
+        createParticles();
+        createNavDots();
+        animateSlide(0);
+    </script>
+</body>
+</html>

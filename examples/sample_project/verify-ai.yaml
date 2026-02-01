@@ -1,0 +1,34 @@
+# VerifyAI Configuration
+# Generated for: sample_project
+
+project:
+  name: sample_project
+  languages: ['python']
+  test_output: ./tests/generated
+
+llm:
+  provider: claude  # claude | openai | ollama
+  model: claude-sonnet-4-20250514
+  fallback: ollama/codellama  # Fallback to local model if API fails
+
+triggers:
+  push:
+    - lint
+    - affected_unit_tests
+  pull_request:
+    - unit_tests
+    - integration_tests
+    - ai_review
+  merge_to_main:
+    - regression_tests
+    - e2e_tests
+  scheduled:
+    cron: "0 2 * * *"
+    jobs:
+      - full_regression
+      - test_regeneration
+
+fix:
+  auto_fix_tests: true      # Auto-fix test code issues
+  auto_fix_source: false    # Source fixes require approval
+  require_approval: true    # Show diff before applying fixes
