@@ -40,6 +40,27 @@ class FixConfig(BaseModel):
     require_approval: bool = True
 
 
+class CoverageConfig(BaseModel):
+    """Coverage analysis configuration."""
+
+    enabled: bool = True
+    threshold: float = 80.0
+    formats: list[str] = Field(default_factory=lambda: ["console"])
+    exclude: list[str] = Field(default_factory=lambda: ["tests/", "*/test_*.py"])
+    fail_under: float | None = None  # Fail if coverage below this threshold
+
+
+class DashboardConfig(BaseModel):
+    """Dashboard configuration."""
+
+    enabled: bool = True
+    host: str = "127.0.0.1"
+    port: int = 8080
+    auto_open_browser: bool = True
+    data_retention_days: int = 90
+    auto_refresh_seconds: int = 30
+
+
 class ProjectConfig(BaseModel):
     """Project-level configuration loaded from verify-ai.yaml."""
 
@@ -49,6 +70,8 @@ class ProjectConfig(BaseModel):
     llm: LLMConfig = Field(default_factory=LLMConfig)
     triggers: TriggerConfig = Field(default_factory=TriggerConfig)
     fix: FixConfig = Field(default_factory=FixConfig)
+    coverage: CoverageConfig = Field(default_factory=CoverageConfig)
+    dashboard: DashboardConfig = Field(default_factory=DashboardConfig)
 
     @classmethod
     def load_from_file(cls, path: Path) -> "ProjectConfig":

@@ -126,6 +126,12 @@ vai diff --from HEAD~3 --to HEAD
 
 # 分析测试失败
 vai analyze --output pytest_output.txt
+
+# 覆盖率分析
+vai coverage --threshold 80
+
+# 启动 Dashboard
+vai dashboard
 ```
 
 ---
@@ -142,6 +148,8 @@ vai analyze --output pytest_output.txt
 | `vai commits` | 提交历史 | `vai commits -n 10` |
 | `vai analyze` | 分析失败 | `vai analyze --fix` |
 | `vai replay` | 从日志生成测试 | `vai replay api.har` |
+| `vai coverage` | 覆盖率分析 | `vai coverage --threshold 80` |
+| `vai dashboard` | 启动Web仪表盘 | `vai dashboard --port 8080` |
 | `vai server` | 启动API服务 | `vai server -p 8000` |
 
 ---
@@ -287,9 +295,11 @@ verify-ai/
 │   ├── git/            # Git 集成（追踪、策略）
 │   ├── analysis/       # 失败分析与修复
 │   ├── scenario/       # 场景还原
+│   ├── coverage/       # 覆盖率分析
+│   ├── dashboard/      # Web Dashboard
 │   ├── mcp/            # MCP Server
 │   └── server/         # REST API
-├── tests/              # 105 个测试
+├── tests/              # 测试套件
 ├── examples/           # 示例项目
 └── SKILL.md            # Cursor Skill 配置
 ```
@@ -324,8 +334,8 @@ ruff check src/
 - [x] Phase 5: 场景还原
 - [x] Phase 6: Cursor Skill + MCP
 - [x] Phase 7: GitHub Webhook + API
-- [ ] Phase 8: Web Dashboard
-- [ ] Phase 9: 覆盖率分析
+- [x] Phase 8: Web Dashboard
+- [x] Phase 9: 覆盖率分析
 - [ ] Phase 10: 性能测试生成
 
 ---

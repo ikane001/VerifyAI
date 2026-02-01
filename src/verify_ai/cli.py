@@ -1059,6 +1059,167 @@ def report(
 
 
 @app.command()
+def coverage(
+    path: Path = typer.Argument(
+        Path("."),
+        help="Path to the project",
+    ),
+    threshold: float = typer.Option(
+        80.0, "--threshold", "-t",
+        help="Coverage threshold percentage (0-100)",
+    ),
+    format: str = typer.Option(
+        "console", "--format", "-f",
+        help="Output format: console, html, json",
+    ),
+    output: Path = typer.Option(
+        None, "--output", "-o",
+        help="Output file for report (html/json only)",
+    ),
+    suggest: bool = typer.Option(
+        False, "--suggest", "-s",
+        help="Suggest tests for uncovered code",
+    ),
+):
+    """Analyze code coverage.
+
+    Runs tests with coverage collection and generates a report.
+    Shows which files and functions lack test coverage.
+    """
+    from verify_ai.coverage import CoverageAnalyzer
+    from verify_ai.coverage.reporter import create_reporter
+
+    project_path = path.resolve()
+
+    if not project_path.exists():
+        console.print(f"[red]Error:[/red] Path does not exist: {project_path}")
+        raise typer.Exit(1)
+
+    console.print(Panel.fit(
+        f"[bold]Coverage Analysis[/bold]\n\n"
+        f"Project: {project_path.name}\n"
+        f"Threshold: {threshold}%\n"
+        f"Format: {format}",
+        title="Coverage",
+    ))
+
+    # Run coverage analysis
+    analyzer = CoverageAnalyzer(project_path)
+
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+    ) as progress:
+        task = progress.add_task("Running tests with coverage...", total=None)
+        try:
+            report_data = analyzer.run_with_coverage()
+        except Exception as e:
+            console.print(f"\n[red]Error running coverage:[/red] {e}")
+            console.print("\n[dim]Make sure pytest and pytest-cov are installed:[/dim]")
+            console.print("  pip install pytest pytest-cov")
+            raise typer.Exit(1)
+
+    # Generate report
+    reporter = create_reporter(format, threshold=threshold)
+    
+    output_path = None
+    if output:
+        output_path = output.resolve()
+    elif format == "html":
+        output_path = project_path / "coverage_report.html"
+    elif format == "json":
+        output_path = project_path / "coverage_report.json"
+
+    reporter.generate(report_data, output_path)
+
+    if output_path and format in ("html", "json"):
+        console.print(f"\n[green]✓[/green] Report saved to: {output_path}")
+
+    # Check threshold
+    passes, message = analyzer.check_threshold(threshold)
+    console.print()
+    if passes:
+        console.print(f"[green]✓[/green] {message}")
+    else:
+        console.print(f"[red]✗[/red] {message}")
+
+    # Show files below threshold
+    below = analyzer.get_files_below_threshold(threshold)
+    if below:
+        console.print(f"\n[yellow]Files below {threshold}% coverage:[/yellow]")
+        for file_path, pct in below[:10]:
+            console.print(f"  • {file_path}: {pct:.1f}%")
+        if len(below) > 10:
+            console.print(f"  ... and {len(below) - 10} more")
+
+    # Suggest tests for uncovered code
+    if suggest:
+        suggestions = analyzer.suggest_tests_for_uncovered(max_suggestions=5)
+        if suggestions:
+            console.print("\n[bold]Suggested Tests for Uncovered Code:[/bold]")
+            for i, sugg in enumerate(suggestions, 1):
+                console.print(f"\n  [{sugg.priority.upper()}] {sugg.function.name}")
+                console.print(f"      File: {sugg.function.file_path}:{sugg.function.start_line}")
+                console.print(f"      Reason: {sugg.reason}")
+                for test_case in sugg.suggested_test_cases[:2]:
+                    console.print(f"      • {test_case}")
+
+    # Exit with error if below threshold
+    if not passes:
+        raise typer.Exit(1)
+
+
+@app.command()
+def dashboard(
+    host: str = typer.Option(
+        "127.0.0.1", "--host", "-h",
+        help="Host to bind to",
+    ),
+    port: int = typer.Option(
+        8080, "--port", "-p",
+        help="Port to listen on",
+    ),
+    no_browser: bool = typer.Option(
+        False, "--no-browser",
+        help="Don't open browser automatically",
+    ),
+    path: Path = typer.Argument(
+        Path("."),
+        help="Path to the project",
+    ),
+):
+    """Start the VerifyAI web dashboard.
+
+    Opens a web interface to monitor test coverage, execution history,
+    and project health metrics.
+    """
+    try:
+        from .dashboard.app import run_dashboard
+    except ImportError:
+        console.print("[red]Error:[/red] Dashboard dependencies not installed")
+        console.print("Install with: pip install 'verify-ai[server]'")
+        raise typer.Exit(1)
+
+    project_path = path.resolve()
+
+    console.print(Panel.fit(
+        f"[bold]VerifyAI Dashboard[/bold]\n\n"
+        f"URL: http://{host}:{port}\n"
+        f"Project: {project_path.name}\n\n"
+        f"Press Ctrl+C to stop",
+        title="Starting Dashboard",
+    ))
+
+    run_dashboard(
+        host=host,
+        port=port,
+        project_path=project_path,
+        open_browser=not no_browser,
+    )
+
+
+@app.command()
 def mcp_server():
     """Start MCP server for AI assistant integration.
 

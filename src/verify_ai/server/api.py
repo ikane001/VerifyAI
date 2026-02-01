@@ -331,6 +331,96 @@ def create_app(
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
+    # Coverage endpoint - run coverage analysis
+    @app.post("/api/coverage")
+    async def run_coverage(
+        path: str = ".",
+        threshold: float = 80.0,
+    ):
+        """Run coverage analysis on a project."""
+        from ..coverage import CoverageAnalyzer
+
+        try:
+            project_path = Path(path).resolve()
+            analyzer = CoverageAnalyzer(project_path)
+            report = analyzer.run_with_coverage()
+
+            passes, message = analyzer.check_threshold(threshold)
+            below_threshold = analyzer.get_files_below_threshold(threshold)
+
+            return {
+                "project": str(project_path),
+                "coverage_percent": report.coverage_percent,
+                "threshold": threshold,
+                "passes_threshold": passes,
+                "message": message,
+                "summary": {
+                    "total_files": report.summary.total_files if report.summary else 0,
+                    "total_lines": report.summary.total_lines if report.summary else 0,
+                    "covered_lines": report.summary.covered_lines if report.summary else 0,
+                    "missed_lines": report.summary.missed_lines if report.summary else 0,
+                },
+                "files_below_threshold": [
+                    {"file": f, "coverage": c}
+                    for f, c in below_threshold[:20]
+                ],
+                "duration_seconds": report.duration_seconds,
+            }
+
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+    # Coverage report endpoint - get latest report
+    @app.get("/api/coverage/report")
+    async def get_coverage_report(path: str = "."):
+        """Get the latest coverage report."""
+        from ..coverage import CoverageAnalyzer
+
+        try:
+            project_path = Path(path).resolve()
+            analyzer = CoverageAnalyzer(project_path)
+
+            # Try to load existing report or run new analysis
+            report = analyzer.run_with_coverage()
+
+            return report.to_dict()
+
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+    # Uncovered functions endpoint
+    @app.get("/api/coverage/uncovered")
+    async def get_uncovered(
+        path: str = ".",
+        max_results: int = 20,
+    ):
+        """Get list of uncovered functions."""
+        from ..coverage import CoverageAnalyzer
+
+        try:
+            project_path = Path(path).resolve()
+            analyzer = CoverageAnalyzer(project_path)
+            report = analyzer.run_with_coverage()
+
+            uncovered = report.get_uncovered_functions()
+
+            return {
+                "total_uncovered": len(uncovered),
+                "functions": [
+                    {
+                        "name": f.name,
+                        "file": f.file_path,
+                        "start_line": f.start_line,
+                        "end_line": f.end_line,
+                        "total_lines": f.total_lines,
+                    }
+                    for f in uncovered[:max_results]
+                ],
+            }
+
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
     return app
 
 

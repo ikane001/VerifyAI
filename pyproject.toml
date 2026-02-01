@@ -43,6 +43,8 @@ dependencies = [
     "tree-sitter-typescript>=0.21.0",
     "tree-sitter-go>=0.21.0",
     "tree-sitter-java>=0.21.0",
+    # Phase 9: Coverage analysis
+    "coverage>=7.0.0",
 ]
 
 [project.optional-dependencies]
@@ -59,11 +61,16 @@ server = [
     "celery>=5.3.0",
     "redis>=5.0.0",
 ]
+dashboard = [
+    "fastapi>=0.109.0",
+    "uvicorn>=0.27.0",
+    "aiosqlite>=0.19.0",
+]
 tui = [
     "textual>=0.50.0",
 ]
 all = [
-    "verify-ai[dev,server,tui]",
+    "verify-ai[dev,server,dashboard,tui]",
 ]
 
 [project.scripts]

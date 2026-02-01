@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VerifyAI Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-left">
+                <div class="logo">V</div>
+                <div>
+                    <h1>VerifyAI Dashboard</h1>
+                    <div class="project-info" id="project-path">Loading...</div>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-primary" onclick="loadDashboard()">
+                    <span class="icon">↻</span> Refresh
+                </button>
+            </div>
+        </header>
+        
+        <div class="stats-grid" id="stats-container">
+            <div class="stat-card skeleton">
+                <h3>Coverage</h3>
+                <div class="value">--</div>
+            </div>
+            <div class="stat-card skeleton">
+                <h3>Total Runs</h3>
+                <div class="value">--</div>
+            </div>
+            <div class="stat-card skeleton">
+                <h3>Success Rate</h3>
+                <div class="value">--</div>
+            </div>
+            <div class="stat-card skeleton">
+                <h3>Avg Duration</h3>
+                <div class="value">--</div>
+            </div>
+        </div>
+        
+        <div class="grid-2">
+            <div class="chart-container">
+                <h2>Coverage Trend</h2>
+                <div class="chart-wrapper">
+                    <canvas id="coverageChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h2>Test Results</h2>
+                <div class="chart-wrapper">
+                    <canvas id="testsChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-header">
+                <h2>Recent Test Runs</h2>
+                <span class="badge" id="runs-count">0 runs</span>
+            </div>
+            
+            <table class="runs-table" id="runs-table">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Status</th>
+                        <th>Trigger</th>
+                        <th>Tests</th>
+                        <th>Pass Rate</th>
+                        <th>Coverage</th>
+                        <th>Duration</th>
+                        <th>Commit</th>
+                    </tr>
+                </thead>
+                <tbody id="runs-body">
+                    <tr><td colspan="8" class="loading">Loading test runs...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <footer>
+            <p>VerifyAI Dashboard &middot; <span id="last-updated">--</span></p>
+        </footer>
+    </div>
+    
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
